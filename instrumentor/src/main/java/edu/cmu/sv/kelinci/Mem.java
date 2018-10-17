@@ -19,6 +19,7 @@ public class Mem {
 	 * Clears the current measurements.
 	 */
 	public static void clear() {
+		prev_location = 0;
 		for (int i = 0; i < SIZE; i++)
 			mem[i] = 0;
 	}
