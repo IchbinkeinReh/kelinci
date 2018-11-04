@@ -329,7 +329,7 @@ class Kelinci {
 
 				} else {
 					// if no request, close your eyes for a bit
-					Thread.sleep(100);
+					Thread.sleep(1);
 				}
 			} catch (SocketException se) {
 				// Connection was reset, most probably means AFL process was killed.

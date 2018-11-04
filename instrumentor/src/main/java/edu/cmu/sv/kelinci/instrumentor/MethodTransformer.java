@@ -25,7 +25,7 @@ import java.util.Random;
  */
 public class MethodTransformer extends MethodVisitor {
 	
-	private HashSet<Integer> ids;
+	private static HashSet<Integer> ids;
 	Random r;
 	
 	public MethodTransformer(MethodVisitor mv) {
