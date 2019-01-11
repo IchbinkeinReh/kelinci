@@ -214,20 +214,11 @@ class Kelinci {
 								System.err.println("Failed to read path length");
 							result = STATUS_COMM_ERROR;
 						} else {
-						
 							// read the path
 							byte input[] = new byte[pathlen];
 							int read = 0;
 							while (read < pathlen) {			
-								if (is.available() > 0) {
-									input[read++] = (byte) is.read();
-								} else {
-									if (verbosity > 1) {
-										System.err.println("No input available from stream, strangely, breaking.");
-										result = STATUS_COMM_ERROR;
-										break;
-									}
-								}
+								input[read++] = (byte) is.read();
 							}
 							String path = new String(input);
 							if (verbosity > 1)
