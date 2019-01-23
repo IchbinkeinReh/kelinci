@@ -28,8 +28,10 @@ import java.util.concurrent.TimeoutException;
  * @author rodykers
  *
  */
-class Kelinci {
+public class Kelinci {
 
+	public static Thread[] fuzzerThreads = new Thread[] {};
+	
 	private static final int maxQueue = 10;
 	private static Queue<FuzzRequest> requestQueue = new ConcurrentLinkedQueue<>();
 
@@ -40,7 +42,7 @@ class Kelinci {
 	public static final byte STATUS_COMM_ERROR = 4;
 	public static final byte STATUS_DONE = 5;
 
-	public static final long DEFAULT_TIMEOUT = 300000L; // in milliseconds
+	public static final long DEFAULT_TIMEOUT = 25000L; // in milliseconds
 	private static long timeout;
 	
 	public static final int DEFAULT_VERBOSITY = 2;
@@ -56,6 +58,8 @@ class Kelinci {
 	private static String targetArgs[];
 
 	private static File tmpfile;
+	
+	private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	private static class FuzzRequest {
 		Socket clientSocket;
@@ -214,6 +218,7 @@ class Kelinci {
 								System.err.println("Failed to read path length");
 							result = STATUS_COMM_ERROR;
 						} else {
+						
 							// read the path
 							byte input[] = new byte[pathlen];
 							int read = 0;
@@ -265,7 +270,6 @@ class Kelinci {
 					if (result != STATUS_COMM_ERROR && appCall != null) {
 
 						// run app with input
-						ExecutorService executor = Executors.newSingleThreadExecutor();
 						Future<Long> future = executor.submit(appCall);
 
 						try {
@@ -277,11 +281,19 @@ class Kelinci {
 								System.out.println("Finished!");
 						} catch (TimeoutException te) {
 							future.cancel(true);
+							executor.shutdownNow();
+							executor = Executors.newSingleThreadExecutor();
 							if (verbosity > 1) 
 								System.out.println("Time-out!");
 							result = STATUS_TIMEOUT;
+						} catch (InterruptedException e) {
+							if (verbosity > 1) 
+								System.out.println("Kelinci was interrupted!");
+							System.exit(0);
 						} catch (Throwable e) {
 							future.cancel(true);
+							executor.shutdownNow();
+							executor = Executors.newSingleThreadExecutor();
 							if (e.getCause() instanceof RuntimeException) {
 								if (verbosity > 1) 
 									System.out.println("RuntimeException thrown!");
@@ -294,7 +306,6 @@ class Kelinci {
 							}
 							e.printStackTrace();
 						}
-						executor.shutdownNow();
 					}
 					
 					if (verbosity > 1)
@@ -436,6 +447,8 @@ class Kelinci {
 			}
 		});
 		fuzzerRuns.start();
+		
+		fuzzerThreads = new Thread[] { server, fuzzerRuns, Thread.currentThread() };
 	}
 	
 	/**
